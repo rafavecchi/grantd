@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AgentAuth — OAuth for AI agents</title>
+<meta name="description" content="Let your AI agent act on your users' behalf across Gmail, Slack, GitHub, and more. AgentAuth vaults OAuth tokens and injects them server-side — no token handling, no refresh logic, no webhooks." />
+<meta property="og:title" content="AgentAuth — OAuth for AI agents" />
+<meta property="og:description" content="Let your AI agent act on your users' behalf. Tokens vaulted server-side, never exposed to the LLM." />
+<meta property="og:type" content="website" />
+<style>
+  :root {
+    --bg: #0b0d12; --panel: #12151c; --panel-2: #171b24;
+    --text: #e7e9ee; --muted: #9aa4b2; --border: #232836;
+    --accent: #7c6cff; --accent-2: #58e6c4; --code: #cdd3df;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans);
+    line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 24px; }
+  .muted { color: var(--muted); }
+  .accent { color: var(--accent-2); }
+
+  /* nav */
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 20px 0;
+    position: sticky; top: 0; background: rgba(11,13,18,.8); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border); z-index: 10; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 18px; }
+  .brand .dot { width: 22px; height: 22px; border-radius: 7px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+  .nav-links { display: flex; gap: 22px; align-items: center; font-size: 15px; }
+  .nav-links a:hover { color: #fff; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 9px; font-weight: 600;
+    font-size: 15px; border: 1px solid var(--border); transition: .15s; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost:hover { border-color: var(--muted); color: #fff; }
+
+  /* hero */
+  .hero { padding: 88px 0 56px; }
+  .pill { display: inline-block; font-size: 13px; color: var(--accent-2);
+    border: 1px solid var(--border); background: var(--panel); padding: 5px 12px;
+    border-radius: 999px; margin-bottom: 22px; }
+  h1 { font-size: 54px; line-height: 1.08; letter-spacing: -1.5px; margin: 0 0 18px; font-weight: 720; }
+  h1 .grad { background: linear-gradient(120deg, var(--accent-2), var(--accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .sub { font-size: 20px; color: var(--muted); max-width: 640px; margin: 0 0 30px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 14px; }
+  .fineprint { font-size: 14px; color: var(--muted); }
+
+  /* code */
+  .code { background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden; box-shadow: 0 20px 60px -30px rgba(124,108,255,.4); }
+  .code-head { display: flex; gap: 8px; align-items: center; padding: 12px 16px;
+    border-bottom: 1px solid var(--border); background: var(--panel-2); }
+  .code-head .d { width: 11px; height: 11px; border-radius: 50%; background: #2c3242; }
+  .code-head .name { margin-left: 10px; font: 13px var(--mono); color: var(--muted); }
+  pre { margin: 0; padding: 20px; overflow-x: auto; font: 13.5px/1.7 var(--mono); color: var(--code); }
+  .k { color: #c792ea; } .s { color: var(--accent-2); } .f { color: #82aaff; } .c { color: #5c6675; }
+
+  /* sections */
+  section { padding: 64px 0; border-top: 1px solid var(--border); }
+  h2 { font-size: 32px; letter-spacing: -.6px; margin: 0 0 14px; font-weight: 680; }
+  .lead { color: var(--muted); font-size: 18px; max-width: 680px; margin: 0 0 36px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .card h3 { margin: 0 0 8px; font-size: 17px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .card .ic { font-size: 20px; margin-bottom: 12px; }
+
+  /* steps */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .step .n { font: 700 14px var(--mono); color: var(--accent-2); margin-bottom: 8px; }
+
+  /* tabs */
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab { padding: 7px 16px; border-radius: 8px; font-size: 14px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted); }
+  .tab.active { color: #fff; border-color: var(--accent); }
+  .tabpane { display: none; } .tabpane.active { display: block; }
+
+  /* providers */
+  .providers { display: flex; gap: 12px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--border); background: var(--panel); border-radius: 10px;
+    padding: 10px 16px; font-size: 15px; }
+
+  /* pricing */
+  .price-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .price { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 26px; }
+  .price.feature { border-color: var(--accent); }
+  .price .tier { font-size: 14px; color: var(--accent-2); text-transform: uppercase; letter-spacing: .5px; }
+  .price .amt { font-size: 30px; font-weight: 700; margin: 8px 0 4px; }
+  .price ul { list-style: none; padding: 0; margin: 16px 0 0; }
+  .price li { color: var(--muted); font-size: 15px; padding: 6px 0; }
+  .price li::before { content: "→ "; color: var(--accent-2); }
+
+  footer { border-top: 1px solid var(--border); padding: 40px 0; color: var(--muted); font-size: 14px;
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+
+  @media (max-width: 820px) {
+    h1 { font-size: 40px; } .grid, .steps, .price-grid { grid-template-columns: 1fr; }
+    .nav-links .hide { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="wrap">
+  <div class="brand"><span class="dot"></span> AgentAuth</div>
+  <div class="nav-links">
+    <a class="hide" href="#how">How it works</a>
+    <a class="hide" href="#mcp">MCP</a>
+    <a class="hide" href="#pricing">Pricing</a>
+    <a href="https://github.com/your-org/agentauth">GitHub</a>
+    <a class="btn btn-primary" href="#start">Get started</a>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <span class="pill">OAuth for AI agents</span>
+  <h1>Let your agent act on your<br><span class="grad">users' behalf.</span></h1>
+  <p class="sub">AgentAuth vaults your users' OAuth tokens and injects them server-side — so your
+    AI agent can call Gmail, Slack, or GitHub without ever touching a token, a refresh flow, or a webhook.</p>
+  <div class="cta-row">
+    <a class="btn btn-primary" href="#start">Get started free</a>
+    <a class="btn btn-ghost" href="https://github.com/your-org/agentauth">View on GitHub</a>
+  </div>
+  <p class="fineprint">Open source · No credit card · Works with any agent framework</p>
+
+  <div class="code" style="margin-top:40px">
+    <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>
+      <span class="name">agent.ts</span></div>
+<pre><span class="k">import</span> { AgentAuth } <span class="k">from</span> <span class="s">'agentauth'</span>;
+<span class="k">const</span> aa = <span class="k">new</span> <span class="f">AgentAuth</span>({ apiKey });
+
+<span class="c">// Your agent sends an email as your user. The token is injected</span>
+<span class="c">// server-side — your code (and the LLM) never sees it.</span>
+<span class="k">await</span> aa.<span class="f">proxy</span>({
+  userId: user.id,
+  provider: <span class="s">'google'</span>,
+  method: <span class="s">'POST'</span>,
+  path: <span class="s">'/gmail/v1/users/me/messages/send'</span>,
+  body: { raw },
+});</pre>
+  </div>
+</header>
+
+<section class="wrap" id="problem">
+  <h2>The part of "AI that does things" nobody wants to build</h2>
+  <p class="lead">The moment your agent needs to act <em>as a user</em> — send their email, open their
+    PR, read their calendar — you're on the hook for OAuth flows, encrypted token storage, refresh
+    races, and webhook plumbing. Get any of it wrong and you leak credentials or silently log users out.</p>
+  <div class="grid">
+    <div class="card"><div class="ic">🔒</div><h3>Tokens never touch your LLM</h3>
+      <p>Calls go through a proxy that injects the user's token server-side. Your agent gets a capability, not a secret.</p></div>
+    <div class="card"><div class="ic">⚡</div><h3>No webhooks</h3>
+      <p>Connect a user, then call provider APIs by your own user id. No async callback dance to wire up.</p></div>
+    <div class="card"><div class="ic">♻️</div><h3>Refresh, handled</h3>
+      <p>Expiring tokens are refreshed automatically under a lock — no double-refresh bug that logs everyone out.</p></div>
+  </div>
+</section>
+
+<section class="wrap" id="how">
+  <h2>Three steps. That's the integration.</h2>
+  <p class="lead">No OAuth code in your app, ever.</p>
+  <div class="steps">
+    <div class="step card"><div class="n">01 · CONNECT</div><h3>Get a link</h3>
+      <p>Generate a connect URL for a user. They authorize the provider once.</p></div>
+    <div class="step card"><div class="n">02 · CALL</div><h3>Act as them</h3>
+      <p><code>aa.proxy(...)</code> any provider API on that user's behalf — token injected for you.</p></div>
+    <div class="step card"><div class="n">03 · DONE</div><h3>Stay connected</h3>
+      <p>Tokens are vaulted, refreshed, and isolated. If a user isn't connected, you get a link back — not an error.</p></div>
+  </div>
+</section>
+
+<section class="wrap" id="start">
+  <h2>Built for every agent stack</h2>
+  <p class="lead">TypeScript and Python SDKs with the same surface. The wedge is in the type system:
+    if the user isn't connected, you get an <code>AuthorizationRequiredError</code> with a ready-to-use connect link.</p>
+  <div class="tabs">
+    <div class="tab active" data-tab="ts">TypeScript</div>
+    <div class="tab" data-tab="py">Python</div>
+  </div>
+  <div class="code">
+    <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>
+      <span class="name" id="tabname">agent.ts</span></div>
+    <div class="tabpane active" id="ts">
+<pre><span class="k">import</span> { AgentAuth, AuthorizationRequiredError } <span class="k">from</span> <span class="s">'agentauth'</span>;
+<span class="k">const</span> aa = <span class="k">new</span> <span class="f">AgentAuth</span>({ apiKey });
+
+<span class="k">try</span> {
+  <span class="k">const</span> profile = <span class="k">await</span> aa.<span class="f">proxy</span>({ userId, provider: <span class="s">'github'</span>, path: <span class="s">'/user'</span> });
+} <span class="k">catch</span> (e) {
+  <span class="k">if</span> (e <span class="k">instanceof</span> AuthorizationRequiredError) redirect(e.connectUrl);
+}</pre>
+    </div>
+    <div class="tabpane" id="py">
+<pre><span class="k">from</span> agentauth <span class="k">import</span> AgentAuth, AuthorizationRequiredError
+aa = <span class="f">AgentAuth</span>(api_key=<span class="s">"sk_..."</span>)
+
+<span class="k">try</span>:
+    profile = aa.<span class="f">proxy</span>(user_id=user.id, provider=<span class="s">"github"</span>, path=<span class="s">"/user"</span>)
+<span class="k">except</span> AuthorizationRequiredError <span class="k">as</span> e:
+    redirect(e.connect_url)  <span class="c"># not connected yet</span></pre>
+    </div>
+  </div>
+  <p class="lead" style="margin-top:30px">Providers today:</p>
+  <div class="providers">
+    <span class="chip">Google / Gmail</span><span class="chip">GitHub</span><span class="chip">Slack</span>
+    <span class="chip">Notion</span><span class="chip muted">+ a declarative registry for the rest</span>
+  </div>
+</section>
+
+<section class="wrap" id="mcp">
+  <h2>MCP-native</h2>
+  <p class="lead">Point Claude Code or Cursor at the AgentAuth MCP server and your agent gets tools to
+    act on a user's behalf. When it tries to use a provider the user hasn't connected, it gets an
+    <code>authorization_required</code> result with a connect link to surface — then retries. The
+    frameworks punt OAuth to a partner; this is that partner, open source.</p>
+  <div class="code">
+    <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>
+      <span class="name">claude — mcp</span></div>
+<pre><span class="c"># Add the broker to Claude Code as tools your agent can call</span>
+claude mcp add agentauth \
+  --env AGENTAUTH_API_KEY=sk_... \
+  -- npx agentauth-mcp</pre>
+  </div>
+</section>
+
+<section class="wrap" id="pricing">
+  <h2>Pricing that scales with your success</h2>
+  <p class="lead">Billed per <strong>monthly active connected user</strong> — you pay only when your
+    users are actually using their connections. Proxy calls are never metered.</p>
+  <div class="price-grid">
+    <div class="price">
+      <div class="tier">Free</div>
+      <div class="amt">$0</div>
+      <p class="muted">No credit card</p>
+      <ul><li>1,000 monthly active users</li><li>All providers</li><li>Unlimited proxy calls</li><li>MCP server + audit log</li></ul>
+    </div>
+    <div class="price feature">
+      <div class="tier">Pro</div>
+      <div class="amt">Usage-based</div>
+      <p class="muted">Self-serve, public pricing</p>
+      <ul><li>Everything in Free</li><li>Per-active-user, fair &amp; predictable</li><li>Full audit + export</li><li>Email support</li></ul>
+    </div>
+    <div class="price">
+      <div class="tier">Self-host</div>
+      <div class="amt">Free</div>
+      <p class="muted">MIT, forever</p>
+      <ul><li>The full broker, one container</li><li>Your infra, your data</li><li>No feature gates</li><li>Bring your own KMS</li></ul>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" style="text-align:center">
+  <h2>Give your agent hands.</h2>
+  <p class="lead" style="margin:0 auto 28px">Stop building OAuth plumbing. Ship the feature.</p>
+  <a class="btn btn-primary" href="#start">Get started free</a>
+</section>
+
+<footer class="wrap">
+  <div>© 2026 AgentAuth · MIT</div>
+  <div style="display:flex; gap:20px">
+    <a href="https://github.com/your-org/agentauth">GitHub</a>
+    <a href="/llms.txt">llms.txt</a>
+    <a href="#start">Docs</a>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function (t) {
+    t.addEventListener('click', function () {
+      var id = t.getAttribute('data-tab');
+      document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('active'); });
+      document.querySelectorAll('.tabpane').forEach(function (x) { x.classList.remove('active'); });
+      t.classList.add('active');
+      document.getElementById(id).classList.add('active');
+      document.getElementById('tabname').textContent = id === 'py' ? 'agent.py' : 'agent.ts';
+    });
+  });
+</script>
+</body>
+</html>
