@@ -57,7 +57,7 @@ The agent gets a *capability* — "make this call as this user" — never the cr
 the same principle as a secrets manager: the thing that uses a secret and the thing that stores it are
 different systems.
 
-[Grantd](https://github.com/your-org/grantd) is an open-source, MCP-native implementation of
+[Grantd](https://github.com/rafavecchi/grantd) is an open-source, MCP-native implementation of
 this pattern. The rest of this guide uses it, but the architecture applies regardless of tooling.
 
 ## Implementation
@@ -165,5 +165,5 @@ raw tokens in app code, don't pass them to the model, and don't hand-roll refres
 between your agent and your users' accounts: connect once, call by `(provider, user_id)`, let the broker
 vault and inject. Your agent gets hands; your users' credentials stay safe.
 
-- Open source broker + SDKs: [github.com/your-org/grantd](https://github.com/your-org/grantd)
-- Machine-readable reference: [llms.txt](https://github.com/your-org/grantd/blob/main/llms.txt)
+- Open source broker + SDKs: [github.com/rafavecchi/grantd](https://github.com/rafavecchi/grantd)
+- Machine-readable reference: [llms.txt](https://github.com/rafavecchi/grantd/blob/main/llms.txt)
