@@ -5,3 +5,11 @@ dist/
 *.log
 .DS_Store
 coverage/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
