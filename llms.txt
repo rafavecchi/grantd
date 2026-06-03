@@ -1,0 +1,49 @@
+# AgentAuth
+
+> OAuth-for-agents: a dead-simple, MCP-native OAuth token broker that lets an AI agent securely
+> act on a user's behalf across third-party APIs (Gmail, Slack, GitHub, Notion). The user's OAuth
+> token is vaulted server-side (envelope-encrypted, AES-256-GCM) and never exposed to the agent or LLM.
+
+Core idea: your agent makes a call by `(provider, end_user_id)` plus a broker secret key. The broker
+injects the user's token server-side and returns the provider's response. No webhooks, no token
+handling in your app, no refresh logic. If the user isn't connected yet, you get an
+`authorization_required` result carrying a connect URL to send them to.
+
+## REST API
+
+Base URL: your broker (e.g. http://localhost:8787). Auth: `Authorization: Bearer sk_...` (secret key).
+
+- `GET /v1/providers` — list supported providers
+- `PUT /v1/integrations/{provider}` — configure a provider OAuth client: `{ client_id, client_secret, scopes }`
+- `POST /v1/connect_sessions` — `{ end_user_id, provider, scopes? }` → `{ url }`; send the user to `url` to authorize
+- `GET /v1/connect/callback` — OAuth redirect target (public; vaults the token)
+- `POST /v1/connections/{provider}/{end_user_id}/token` — fresh access token (auto-refreshed); `?force_refresh=true` to force
+- `ALL /v1/proxy/{provider}/{end_user_id}/{path}` — call a provider API as the user (token injected server-side)
+- `GET /v1/connections` — list connections
+- `DELETE /v1/connections/{provider}/{end_user_id}` — revoke
+
+## TypeScript SDK (npm package: `agentauth`)
+
+```ts
+import { AgentAuth, AuthorizationRequiredError } from 'agentauth';
+const aa = new AgentAuth({ apiKey: process.env.AGENTAUTH_API_KEY! });
+
+// Act as the user — token injected server-side, never exposed:
+const profile = await aa.proxy({ userId, provider: 'github', path: '/user' });
+
+// proxy() and getToken() throw AuthorizationRequiredError (with .connectUrl) when not connected.
+await aa.connect({ userId, provider });        // -> { url } to send the user to
+await aa.getToken({ userId, provider });       // -> { accessToken, expiresAt }
+```
+
+## MCP server
+
+Exposes the broker to AI coding tools (Claude Code, Cursor) as tools:
+`list_providers`, `check_connection`, `create_connect_link`, `call_provider`.
+`call_provider` returns an `authorization_required` result with a connect link when the user
+isn't connected — the agent surfaces it to the user, then retries.
+
+## Docs
+
+- [README](README.md): setup, architecture, MCP config
+- [SDK reference](sdk/README.md)

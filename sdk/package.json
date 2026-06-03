@@ -1,0 +1,27 @@
+{
+  "name": "agentauth",
+  "version": "0.0.1",
+  "description": "OAuth-for-agents TypeScript SDK — let your AI agent securely act on a user's behalf across third-party APIs.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": ["oauth", "ai-agents", "mcp", "authorization", "token-vault", "agentauth"],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
