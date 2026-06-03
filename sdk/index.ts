@@ -1,7 +1,7 @@
-// AgentAuth TypeScript SDK — let your AI agent act on a user's behalf.
+// Grantd TypeScript SDK — let your AI agent act on a user's behalf.
 // Zero dependencies; uses the global fetch (Node 18+, Bun, Deno, edge runtimes).
 
-export interface AgentAuthOptions {
+export interface GrantdOptions {
   /** Your secret key (sk_...). */
   apiKey: string;
   /** Broker base URL. Defaults to http://localhost:8787. */
@@ -60,7 +60,7 @@ export interface ProxyOptions {
   query?: Record<string, string | number | boolean>;
 }
 
-export class AgentAuthError extends Error {
+export class GrantdError extends Error {
   constructor(
     message: string,
     public status: number,
@@ -68,12 +68,12 @@ export class AgentAuthError extends Error {
     public details?: unknown,
   ) {
     super(message);
-    this.name = 'AgentAuthError';
+    this.name = 'GrantdError';
   }
 }
 
 /** Thrown when the user has no usable connection. Carries a ready-to-use connect URL. */
-export class AuthorizationRequiredError extends AgentAuthError {
+export class AuthorizationRequiredError extends GrantdError {
   constructor(
     public provider: string,
     public userId: string,
@@ -93,17 +93,17 @@ interface ApiResult {
 
 const AUTH_ERROR_TYPES = new Set(['not_found', 'not_connected', 'expired', 'revoked']);
 
-export class AgentAuth {
+export class Grantd {
   private apiKey: string;
   private baseUrl: string;
   private fetchImpl: typeof fetch;
 
-  constructor(opts: AgentAuthOptions) {
-    if (!opts.apiKey) throw new Error('AgentAuth: apiKey is required');
+  constructor(opts: GrantdOptions) {
+    if (!opts.apiKey) throw new Error('Grantd: apiKey is required');
     this.apiKey = opts.apiKey;
     this.baseUrl = (opts.baseUrl ?? 'http://localhost:8787').replace(/\/+$/, '');
     const f = opts.fetch ?? globalThis.fetch;
-    if (!f) throw new Error('AgentAuth: no global fetch available; pass opts.fetch');
+    if (!f) throw new Error('Grantd: no global fetch available; pass opts.fetch');
     this.fetchImpl = f;
   }
 
@@ -165,7 +165,7 @@ export class AgentAuth {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ client_id: opts.clientId, client_secret: opts.clientSecret, scopes: opts.scopes ?? [] }),
     });
-    if (r.status >= 400) throw new AgentAuthError(`configureIntegration failed (${r.status})`, r.status, this.errType(r), r.json);
+    if (r.status >= 400) throw new GrantdError(`configureIntegration failed (${r.status})`, r.status, this.errType(r), r.json);
   }
 
   /** Create an authorization URL for an end-user to connect a provider. */
@@ -181,7 +181,7 @@ export class AgentAuth {
         redirect_uri: opts.redirectUri,
       }),
     });
-    if (r.status >= 400) throw new AgentAuthError(`connect failed (${r.status})`, r.status, this.errType(r), r.json);
+    if (r.status >= 400) throw new GrantdError(`connect failed (${r.status})`, r.status, this.errType(r), r.json);
     const d = (r.json as { data: { url: string; provider: string; end_user_id: string; expires_at: string } }).data;
     return { url: d.url, provider: d.provider, userId: d.end_user_id, expiresAt: d.expires_at };
   }
@@ -214,7 +214,7 @@ export class AgentAuth {
     const qs = opts.forceRefresh ? '?force_refresh=true' : '';
     const r = await this.req(`/v1/connections/${opts.provider}/${opts.userId}/token${qs}`, { method: 'POST' });
     await this.throwIfAuthRequired(r, opts.provider, opts.userId);
-    if (r.status >= 400) throw new AgentAuthError(`getToken failed (${r.status})`, r.status, this.errType(r), r.json);
+    if (r.status >= 400) throw new GrantdError(`getToken failed (${r.status})`, r.status, this.errType(r), r.json);
     const d = (r.json as { data: { access_token: string; expires_at: string | null } }).data;
     return { accessToken: d.access_token, expiresAt: d.expires_at };
   }
@@ -223,7 +223,7 @@ export class AgentAuth {
   async revoke(opts: { userId: string; provider: string }): Promise<void> {
     const r = await this.req(`/v1/connections/${opts.provider}/${opts.userId}`, { method: 'DELETE' });
     if (r.status >= 400 && r.status !== 404) {
-      throw new AgentAuthError(`revoke failed (${r.status})`, r.status, this.errType(r), r.json);
+      throw new GrantdError(`revoke failed (${r.status})`, r.status, this.errType(r), r.json);
     }
   }
 
@@ -252,10 +252,10 @@ export class AgentAuth {
     const r = await this.req(`/v1/proxy/${opts.provider}/${opts.userId}${p}${qs}`, { method, headers, body });
     await this.throwIfAuthRequired(r, opts.provider, opts.userId);
     if (r.status >= 400) {
-      throw new AgentAuthError(`provider request failed (${r.status})`, r.status, this.errType(r), r.json ?? r.text);
+      throw new GrantdError(`provider request failed (${r.status})`, r.status, this.errType(r), r.json ?? r.text);
     }
     return (r.json ?? r.text) as T;
   }
 }
 
-export default AgentAuth;
+export default Grantd;

@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 
-class AgentAuthError(Exception):
+class GrantdError(Exception):
     """A broker request failed."""
 
     def __init__(self, message: str, status: int, type: Optional[str] = None, details: Any = None):
@@ -13,7 +13,7 @@ class AgentAuthError(Exception):
         self.details = details
 
 
-class AuthorizationRequiredError(AgentAuthError):
+class AuthorizationRequiredError(GrantdError):
     """The user has no usable connection. Carries a ready-to-use ``connect_url``."""
 
     def __init__(self, provider: str, user_id: str, connect_url: Optional[str], type: str):

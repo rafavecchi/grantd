@@ -1,11 +1,11 @@
-from .client import AgentAuth, AsyncAgentAuth
-from .errors import AgentAuthError, AuthorizationRequiredError
+from .client import Grantd, AsyncGrantd
+from .errors import GrantdError, AuthorizationRequiredError
 from .models import Connection, ConnectResult, ProviderInfo, TokenResult
 
 __all__ = [
-    "AgentAuth",
-    "AsyncAgentAuth",
-    "AgentAuthError",
+    "Grantd",
+    "AsyncGrantd",
+    "GrantdError",
     "AuthorizationRequiredError",
     "ProviderInfo",
     "ConnectResult",

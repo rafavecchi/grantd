@@ -1,4 +1,4 @@
-# AgentAuth
+# Grantd
 
 > OAuth-for-agents: a dead-simple, MCP-native OAuth token broker that lets an AI agent securely
 > act on a user's behalf across third-party APIs (Gmail, Slack, GitHub, Notion). The user's OAuth
@@ -22,11 +22,11 @@ Base URL: your broker (e.g. http://localhost:8787). Auth: `Authorization: Bearer
 - `GET /v1/connections` — list connections
 - `DELETE /v1/connections/{provider}/{end_user_id}` — revoke
 
-## TypeScript SDK (npm package: `agentauth`)
+## TypeScript SDK (npm package: `grantd`)
 
 ```ts
-import { AgentAuth, AuthorizationRequiredError } from 'agentauth';
-const aa = new AgentAuth({ apiKey: process.env.AGENTAUTH_API_KEY! });
+import { Grantd, AuthorizationRequiredError } from 'grantd';
+const aa = new Grantd({ apiKey: process.env.GRANTD_API_KEY! });
 
 // Act as the user — token injected server-side, never exposed:
 const profile = await aa.proxy({ userId, provider: 'github', path: '/user' });

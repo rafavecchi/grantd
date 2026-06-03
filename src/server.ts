@@ -293,5 +293,5 @@ function escapeHtml(s: string): string {
 }
 
 serve({ fetch: app.fetch, port: config.port }, (info) => {
-  console.log(`AgentAuth listening on http://localhost:${info.port}`);
+  console.log(`Grantd listening on http://localhost:${info.port}`);
 });

@@ -1,16 +1,16 @@
 """Exercises the Python SDK against a running broker.
-Run with the broker up and AGENTAUTH_API_KEY set:
+Run with the broker up and GRANTD_API_KEY set:
     python test.py
 """
 import asyncio
 import os
 
-from agentauth import AgentAuth, AsyncAgentAuth, AuthorizationRequiredError
+from grantd import Grantd, AsyncGrantd, AuthorizationRequiredError
 
-api_key = os.environ["AGENTAUTH_API_KEY"]
-base = os.environ.get("AGENTAUTH_BASE_URL", "http://localhost:8787")
+api_key = os.environ["GRANTD_API_KEY"]
+base = os.environ.get("GRANTD_BASE_URL", "http://localhost:8787")
 
-aa = AgentAuth(api_key=api_key, base_url=base)
+aa = Grantd(api_key=api_key, base_url=base)
 
 print("providers:", ", ".join(p.slug for p in aa.list_providers()))
 print("connections:", ", ".join(f"{c.provider}/{c.user_id}:{c.status}" for c in aa.list_connections()))
@@ -31,7 +31,7 @@ aa.close()
 
 
 async def amain():
-    async with AsyncAgentAuth(api_key=api_key, base_url=base) as c:
+    async with AsyncGrantd(api_key=api_key, base_url=base) as c:
         gh2 = await c.proxy(user_id="rafa", provider="github", path="/user")
         print("async proxy github /user ->", gh2["login"])
 

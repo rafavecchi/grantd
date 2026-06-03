@@ -1,18 +1,18 @@
-# agentauth (Python)
+# grantd (Python)
 
 Let your AI agent securely act on a user's behalf across third-party APIs (Gmail, Slack,
 GitHub, Notion…). Tokens are vaulted server-side and never touch your agent or the LLM.
 
 ```bash
-pip install agentauth
+pip install grantd
 ```
 
 ## The whole thing in 5 lines
 
 ```python
-from agentauth import AgentAuth, AuthorizationRequiredError
+from grantd import Grantd, AuthorizationRequiredError
 
-aa = AgentAuth(api_key="sk_...")
+aa = Grantd(api_key="sk_...")
 
 try:
     profile = aa.proxy(user_id=user.id, provider="github", path="/user")
@@ -46,17 +46,17 @@ aa.proxy(
 ## Async
 
 ```python
-from agentauth import AsyncAgentAuth
+from grantd import AsyncGrantd
 
-async with AsyncAgentAuth(api_key="sk_...") as aa:
+async with AsyncGrantd(api_key="sk_...") as aa:
     profile = await aa.proxy(user_id=user.id, provider="github", path="/user")
 ```
 
 ## API
 
 ```python
-AgentAuth(api_key, base_url="http://localhost:8787", timeout=30.0)
-AsyncAgentAuth(...)  # same surface, awaitable
+Grantd(api_key, base_url="http://localhost:8787", timeout=30.0)
+AsyncGrantd(...)  # same surface, awaitable
 
 aa.list_providers() -> list[ProviderInfo]
 aa.connect(user_id, provider, scopes=None, connection_config=None, redirect_uri=None) -> ConnectResult
@@ -67,7 +67,7 @@ aa.revoke(user_id, provider) -> None
 aa.configure_integration(provider, client_id, client_secret, scopes=None) -> None
 ```
 
-Errors: `AgentAuthError` (`.status`, `.type`, `.details`) and `AuthorizationRequiredError`
+Errors: `GrantdError` (`.status`, `.type`, `.details`) and `AuthorizationRequiredError`
 (adds `.connect_url`, `.provider`, `.user_id`).
 
 MIT.

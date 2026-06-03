@@ -1,5 +1,5 @@
 // Smoke-test the MCP server: spawn it over stdio, list tools, call a few.
-// Requires the broker running on AGENTAUTH_BASE_URL and a connected user.
+// Requires the broker running on GRANTD_BASE_URL and a connected user.
 import 'dotenv/config';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';

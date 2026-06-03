@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>AgentAuth — OAuth for AI agents</title>
-<meta name="description" content="Let your AI agent act on your users' behalf across Gmail, Slack, GitHub, and more. AgentAuth vaults OAuth tokens and injects them server-side — no token handling, no refresh logic, no webhooks." />
-<meta property="og:title" content="AgentAuth — OAuth for AI agents" />
+<title>Grantd — OAuth for AI agents</title>
+<meta name="description" content="Let your AI agent act on your users' behalf across Gmail, Slack, GitHub, and more. Grantd vaults OAuth tokens and injects them server-side — no token handling, no refresh logic, no webhooks." />
+<meta property="og:title" content="Grantd — OAuth for AI agents" />
 <meta property="og:description" content="Let your AI agent act on your users' behalf. Tokens vaulted server-side, never exposed to the LLM." />
 <meta property="og:type" content="website" />
 <style>
@@ -110,12 +110,12 @@
 <body>
 
 <nav class="wrap">
-  <div class="brand"><span class="dot"></span> AgentAuth</div>
+  <div class="brand"><span class="dot"></span> Grantd</div>
   <div class="nav-links">
     <a class="hide" href="#how">How it works</a>
     <a class="hide" href="#mcp">MCP</a>
     <a class="hide" href="#pricing">Pricing</a>
-    <a href="https://github.com/your-org/agentauth">GitHub</a>
+    <a href="https://github.com/your-org/grantd">GitHub</a>
     <a class="btn btn-primary" href="#start">Get started</a>
   </div>
 </nav>
@@ -123,19 +123,19 @@
 <header class="hero wrap">
   <span class="pill">OAuth for AI agents</span>
   <h1>Let your agent act on your<br><span class="grad">users' behalf.</span></h1>
-  <p class="sub">AgentAuth vaults your users' OAuth tokens and injects them server-side — so your
+  <p class="sub">Grantd vaults your users' OAuth tokens and injects them server-side — so your
     AI agent can call Gmail, Slack, or GitHub without ever touching a token, a refresh flow, or a webhook.</p>
   <div class="cta-row">
     <a class="btn btn-primary" href="#start">Get started free</a>
-    <a class="btn btn-ghost" href="https://github.com/your-org/agentauth">View on GitHub</a>
+    <a class="btn btn-ghost" href="https://github.com/your-org/grantd">View on GitHub</a>
   </div>
   <p class="fineprint">Open source · No credit card · Works with any agent framework</p>
 
   <div class="code" style="margin-top:40px">
     <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>
       <span class="name">agent.ts</span></div>
-<pre><span class="k">import</span> { AgentAuth } <span class="k">from</span> <span class="s">'agentauth'</span>;
-<span class="k">const</span> aa = <span class="k">new</span> <span class="f">AgentAuth</span>({ apiKey });
+<pre><span class="k">import</span> { Grantd } <span class="k">from</span> <span class="s">'grantd'</span>;
+<span class="k">const</span> aa = <span class="k">new</span> <span class="f">Grantd</span>({ apiKey });
 
 <span class="c">// Your agent sends an email as your user. The token is injected</span>
 <span class="c">// server-side — your code (and the LLM) never sees it.</span>
@@ -189,8 +189,8 @@
     <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>
       <span class="name" id="tabname">agent.ts</span></div>
     <div class="tabpane active" id="ts">
-<pre><span class="k">import</span> { AgentAuth, AuthorizationRequiredError } <span class="k">from</span> <span class="s">'agentauth'</span>;
-<span class="k">const</span> aa = <span class="k">new</span> <span class="f">AgentAuth</span>({ apiKey });
+<pre><span class="k">import</span> { Grantd, AuthorizationRequiredError } <span class="k">from</span> <span class="s">'grantd'</span>;
+<span class="k">const</span> aa = <span class="k">new</span> <span class="f">Grantd</span>({ apiKey });
 
 <span class="k">try</span> {
   <span class="k">const</span> profile = <span class="k">await</span> aa.<span class="f">proxy</span>({ userId, provider: <span class="s">'github'</span>, path: <span class="s">'/user'</span> });
@@ -199,8 +199,8 @@
 }</pre>
     </div>
     <div class="tabpane" id="py">
-<pre><span class="k">from</span> agentauth <span class="k">import</span> AgentAuth, AuthorizationRequiredError
-aa = <span class="f">AgentAuth</span>(api_key=<span class="s">"sk_..."</span>)
+<pre><span class="k">from</span> grantd <span class="k">import</span> Grantd, AuthorizationRequiredError
+aa = <span class="f">Grantd</span>(api_key=<span class="s">"sk_..."</span>)
 
 <span class="k">try</span>:
     profile = aa.<span class="f">proxy</span>(user_id=user.id, provider=<span class="s">"github"</span>, path=<span class="s">"/user"</span>)
@@ -217,7 +217,7 @@ aa = <span class="f">AgentAuth</span>(api_key=<span class="s">"sk_..."</span>)
 
 <section class="wrap" id="mcp">
   <h2>MCP-native</h2>
-  <p class="lead">Point Claude Code or Cursor at the AgentAuth MCP server and your agent gets tools to
+  <p class="lead">Point Claude Code or Cursor at the Grantd MCP server and your agent gets tools to
     act on a user's behalf. When it tries to use a provider the user hasn't connected, it gets an
     <code>authorization_required</code> result with a connect link to surface — then retries. The
     frameworks punt OAuth to a partner; this is that partner, open source.</p>
@@ -225,9 +225,9 @@ aa = <span class="f">AgentAuth</span>(api_key=<span class="s">"sk_..."</span>)
     <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>
       <span class="name">claude — mcp</span></div>
 <pre><span class="c"># Add the broker to Claude Code as tools your agent can call</span>
-claude mcp add agentauth \
-  --env AGENTAUTH_API_KEY=sk_... \
-  -- npx agentauth-mcp</pre>
+claude mcp add grantd \
+  --env GRANTD_API_KEY=sk_... \
+  -- npx grantd-mcp</pre>
   </div>
 </section>
 
@@ -264,9 +264,9 @@ claude mcp add agentauth \
 </section>
 
 <footer class="wrap">
-  <div>© 2026 AgentAuth · MIT</div>
+  <div>© 2026 Grantd · MIT</div>
   <div style="display:flex; gap:20px">
-    <a href="https://github.com/your-org/agentauth">GitHub</a>
+    <a href="https://github.com/your-org/grantd">GitHub</a>
     <a href="/llms.txt">llms.txt</a>
     <a href="#start">Docs</a>
   </div>

@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Mapping, Optional, Union
 
 import httpx
 
-from .errors import AgentAuthError, AuthorizationRequiredError
+from .errors import GrantdError, AuthorizationRequiredError
 from .models import Connection, ConnectResult, ProviderInfo, TokenResult
 
 _AUTH_ERROR_TYPES = {"not_found", "not_connected", "expired", "revoked"}
@@ -59,12 +59,12 @@ def _connect_payload(user_id, provider, scopes, connection_config, redirect_uri)
     return payload
 
 
-def _err(label: str, r: httpx.Response) -> AgentAuthError:
-    return AgentAuthError(f"{label} failed ({r.status_code})", r.status_code, _err_type(r), _result(r))
+def _err(label: str, r: httpx.Response) -> GrantdError:
+    return GrantdError(f"{label} failed ({r.status_code})", r.status_code, _err_type(r), _result(r))
 
 
-class AgentAuth:
-    """Synchronous AgentAuth client."""
+class Grantd:
+    """Synchronous Grantd client."""
 
     def __init__(
         self,
@@ -74,12 +74,12 @@ class AgentAuth:
         client: Optional[httpx.Client] = None,
     ):
         if not api_key:
-            raise ValueError("AgentAuth: api_key is required")
+            raise ValueError("Grantd: api_key is required")
         self._base_url = base_url.rstrip("/")
         self._auth = {"authorization": f"Bearer {api_key}"}
         self._client = client or httpx.Client(timeout=timeout)
 
-    def __enter__(self) -> "AgentAuth":
+    def __enter__(self) -> "Grantd":
         return self
 
     def __exit__(self, *exc: Any) -> None:
@@ -170,8 +170,8 @@ class AgentAuth:
         return _result(r)
 
 
-class AsyncAgentAuth:
-    """Asynchronous AgentAuth client."""
+class AsyncGrantd:
+    """Asynchronous Grantd client."""
 
     def __init__(
         self,
@@ -181,12 +181,12 @@ class AsyncAgentAuth:
         client: Optional[httpx.AsyncClient] = None,
     ):
         if not api_key:
-            raise ValueError("AgentAuth: api_key is required")
+            raise ValueError("Grantd: api_key is required")
         self._base_url = base_url.rstrip("/")
         self._auth = {"authorization": f"Bearer {api_key}"}
         self._client = client or httpx.AsyncClient(timeout=timeout)
 
-    async def __aenter__(self) -> "AsyncAgentAuth":
+    async def __aenter__(self) -> "AsyncGrantd":
         return self
 
     async def __aexit__(self, *exc: Any) -> None:

@@ -1,18 +1,18 @@
-# agentauth
+# grantd
 
 Let your AI agent securely act on a user's behalf across third-party APIs (Gmail, Slack,
 GitHub, Notion…). Tokens are vaulted server-side and never touch your agent or the LLM.
 
 ```bash
-npm install agentauth
+npm install grantd
 ```
 
 ## The whole thing in 5 lines
 
 ```ts
-import { AgentAuth, AuthorizationRequiredError } from 'agentauth';
+import { Grantd, AuthorizationRequiredError } from 'grantd';
 
-const aa = new AgentAuth({ apiKey: process.env.AGENTAUTH_API_KEY! });
+const aa = new Grantd({ apiKey: process.env.GRANTD_API_KEY! });
 
 try {
   // Call any provider API as your user — token injected server-side, never exposed.
@@ -49,7 +49,7 @@ await aa.proxy({
 ## API
 
 ```ts
-new AgentAuth({ apiKey, baseUrl?, fetch? })
+new Grantd({ apiKey, baseUrl?, fetch? })
 
 aa.listProviders(): Promise<ProviderInfo[]>
 aa.connect({ userId, provider, scopes?, connectionConfig?, redirectUri? }): Promise<{ url, ... }>
@@ -60,7 +60,7 @@ aa.revoke({ userId, provider }): Promise<void>
 aa.configureIntegration(provider, { clientId, clientSecret, scopes? }): Promise<void>
 ```
 
-Errors: `AgentAuthError` (status, type, details) and `AuthorizationRequiredError`
+Errors: `GrantdError` (status, type, details) and `AuthorizationRequiredError`
 (adds `connectUrl`, `provider`, `userId`).
 
 MIT.

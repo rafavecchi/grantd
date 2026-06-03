@@ -1,5 +1,5 @@
 {
-  "name": "agentauth",
+  "name": "grantd",
   "version": "0.0.1",
   "description": "OAuth-for-agents TypeScript SDK — let your AI agent securely act on a user's behalf across third-party APIs.",
   "type": "module",
@@ -18,7 +18,7 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "keywords": ["oauth", "ai-agents", "mcp", "authorization", "token-vault", "agentauth"],
+  "keywords": ["oauth", "ai-agents", "mcp", "authorization", "token-vault", "grantd"],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^22.10.2",

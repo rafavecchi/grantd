@@ -1,4 +1,4 @@
-# AgentAuth (working name)
+# Grantd (working name)
 
 OAuth-for-agents: a dead-simple, MCP-native OAuth token broker that lets AI agents securely
 act on a user's behalf across third-party APIs (Gmail, Slack, GitHub, Notion…). Tokens are
@@ -35,11 +35,11 @@ Run standalone (needs the broker running): `npm run mcp`. Smoke test: `npm run m
 Add to Claude Code:
 
 ```bash
-claude mcp add agentauth \
-  --env AGENTAUTH_API_KEY=sk_... \
-  --env AGENTAUTH_BASE_URL=http://localhost:8787 \
-  --env AGENTAUTH_END_USER=rafa \
-  -- npx tsx C:/Users/Rafav/agentauth/src/mcp.ts
+claude mcp add grantd \
+  --env GRANTD_API_KEY=sk_... \
+  --env GRANTD_BASE_URL=http://localhost:8787 \
+  --env GRANTD_END_USER=rafa \
+  -- npx tsx C:/Users/Rafav/grantd/src/mcp.ts
 ```
 
 Or in a Cursor / Claude Desktop `mcpServers` config:
@@ -47,20 +47,20 @@ Or in a Cursor / Claude Desktop `mcpServers` config:
 ```json
 {
   "mcpServers": {
-    "agentauth": {
+    "grantd": {
       "command": "npx",
-      "args": ["tsx", "C:\\Users\\Rafav\\agentauth\\src\\mcp.ts"],
+      "args": ["tsx", "C:\\Users\\Rafav\\grantd\\src\\mcp.ts"],
       "env": {
-        "AGENTAUTH_API_KEY": "sk_...",
-        "AGENTAUTH_BASE_URL": "http://localhost:8787",
-        "AGENTAUTH_END_USER": "rafa"
+        "GRANTD_API_KEY": "sk_...",
+        "GRANTD_BASE_URL": "http://localhost:8787",
+        "GRANTD_END_USER": "rafa"
       }
     }
   }
 }
 ```
 
-(Windows fallback if `npx` spawn misbehaves: use `"command": "node"`, `"args": ["C:\\Users\\Rafav\\agentauth\\node_modules\\tsx\\dist\\cli.mjs", "C:\\Users\\Rafav\\agentauth\\src\\mcp.ts"]`.)
+(Windows fallback if `npx` spawn misbehaves: use `"command": "node"`, `"args": ["C:\\Users\\Rafav\\grantd\\node_modules\\tsx\\dist\\cli.mjs", "C:\\Users\\Rafav\\grantd\\src\\mcp.ts"]`.)
 
 ## Layout
 

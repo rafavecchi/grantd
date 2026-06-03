@@ -1,10 +1,10 @@
 // Exercises the SDK against a running broker. Run with the broker up:
-//   AGENTAUTH_API_KEY=sk_... npx tsx sdk/test.ts
-import { AgentAuth, AuthorizationRequiredError } from './index';
+//   GRANTD_API_KEY=sk_... npx tsx sdk/test.ts
+import { Grantd, AuthorizationRequiredError } from './index';
 
-const aa = new AgentAuth({
-  apiKey: process.env.AGENTAUTH_API_KEY!,
-  baseUrl: process.env.AGENTAUTH_BASE_URL,
+const aa = new Grantd({
+  apiKey: process.env.GRANTD_API_KEY!,
+  baseUrl: process.env.GRANTD_BASE_URL,
 });
 
 console.log('providers:', (await aa.listProviders()).map((p) => p.slug).join(', '));

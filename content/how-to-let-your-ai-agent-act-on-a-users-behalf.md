@@ -57,7 +57,7 @@ The agent gets a *capability* — "make this call as this user" — never the cr
 the same principle as a secrets manager: the thing that uses a secret and the thing that stores it are
 different systems.
 
-[AgentAuth](https://github.com/your-org/agentauth) is an open-source, MCP-native implementation of
+[Grantd](https://github.com/your-org/grantd) is an open-source, MCP-native implementation of
 this pattern. The rest of this guide uses it, but the architecture applies regardless of tooling.
 
 ## Implementation
@@ -67,8 +67,8 @@ this pattern. The rest of this guide uses it, but the architecture applies regar
 Generate an authorization link for a user and a provider. Send them to it; they consent once.
 
 ```ts
-import { AgentAuth } from 'agentauth';
-const aa = new AgentAuth({ apiKey: process.env.AGENTAUTH_API_KEY! });
+import { Grantd } from 'grantd';
+const aa = new Grantd({ apiKey: process.env.GRANTD_API_KEY! });
 
 const { url } = await aa.connect({ userId: user.id, provider: 'google' });
 // redirect the user to `url`. The broker vaults their tokens on the callback.
@@ -105,7 +105,7 @@ The killer ergonomic detail: when a user *hasn't* connected, you don't want a cr
 link to send them. The SDK turns this into a typed error carrying a ready-to-use connect URL:
 
 ```ts
-import { AgentAuth, AuthorizationRequiredError } from 'agentauth';
+import { Grantd, AuthorizationRequiredError } from 'grantd';
 
 try {
   const profile = await aa.proxy({ userId, provider: 'github', path: '/user' });
@@ -155,7 +155,7 @@ like `call_provider` directly. When it tries to act for a user who hasn't connec
 `authorization_required` result with a connect link — which it surfaces to the user, then retries.
 
 ```bash
-claude mcp add agentauth --env AGENTAUTH_API_KEY=sk_... -- npx agentauth-mcp
+claude mcp add grantd --env GRANTD_API_KEY=sk_... -- npx grantd-mcp
 ```
 
 ## Summary
@@ -165,5 +165,5 @@ raw tokens in app code, don't pass them to the model, and don't hand-roll refres
 between your agent and your users' accounts: connect once, call by `(provider, user_id)`, let the broker
 vault and inject. Your agent gets hands; your users' credentials stay safe.
 
-- Open source broker + SDKs: [github.com/your-org/agentauth](https://github.com/your-org/agentauth)
-- Machine-readable reference: [llms.txt](https://github.com/your-org/agentauth/blob/main/llms.txt)
+- Open source broker + SDKs: [github.com/your-org/grantd](https://github.com/your-org/grantd)
+- Machine-readable reference: [llms.txt](https://github.com/your-org/grantd/blob/main/llms.txt)

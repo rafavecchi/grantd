@@ -3,16 +3,16 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 
-// AgentAuth MCP server — exposes the broker to an AI agent (Claude/Cursor) as tools.
-// It is a thin client of the AgentAuth HTTP API, configured with a secret key.
+// Grantd MCP server — exposes the broker to an AI agent (Claude/Cursor) as tools.
+// It is a thin client of the Grantd HTTP API, configured with a secret key.
 // NOTE: stdio is the transport — only log to stderr (console.error), never stdout.
 
-const BASE = (process.env.AGENTAUTH_BASE_URL ?? 'http://localhost:8787').replace(/\/+$/, '');
-const API_KEY = process.env.AGENTAUTH_API_KEY ?? '';
-const DEFAULT_END_USER = process.env.AGENTAUTH_END_USER ?? '';
+const BASE = (process.env.GRANTD_BASE_URL ?? 'http://localhost:8787').replace(/\/+$/, '');
+const API_KEY = process.env.GRANTD_API_KEY ?? '';
+const DEFAULT_END_USER = process.env.GRANTD_END_USER ?? '';
 
 if (!API_KEY) {
-  console.error('AGENTAUTH_API_KEY is required (an sk_... secret key).');
+  console.error('GRANTD_API_KEY is required (an sk_... secret key).');
   process.exit(1);
 }
 
@@ -40,7 +40,7 @@ async function api(path: string, init: RequestInit = {}): Promise<ApiResult> {
 
 function resolveUser(provided?: string): string {
   const u = provided ?? DEFAULT_END_USER;
-  if (!u) throw new Error('end_user_id is required (no AGENTAUTH_END_USER default is set).');
+  if (!u) throw new Error('end_user_id is required (no GRANTD_END_USER default is set).');
   return u;
 }
 
@@ -59,11 +59,11 @@ function text(value: unknown, isError = false) {
   return { content: [{ type: 'text' as const, text: body }], isError };
 }
 
-const server = new McpServer({ name: 'agentauth', version: '0.0.1' });
+const server = new McpServer({ name: 'grantd', version: '0.0.1' });
 
 server.tool(
   'list_providers',
-  'List the third-party providers AgentAuth can connect on a user\'s behalf (e.g. google, github).',
+  'List the third-party providers Grantd can connect on a user\'s behalf (e.g. google, github).',
   {},
   async () => {
     const r = await api('/v1/providers');
@@ -77,7 +77,7 @@ server.tool(
   "Check whether an end-user has an active connection to a provider. If not, returns a connect_url to share with them.",
   {
     provider: z.string().describe('provider slug, e.g. "google" or "github"'),
-    end_user_id: z.string().optional().describe('the end-user id; defaults to AGENTAUTH_END_USER'),
+    end_user_id: z.string().optional().describe('the end-user id; defaults to GRANTD_END_USER'),
   },
   async ({ provider, end_user_id }) => {
     const endUser = resolveUser(end_user_id);
@@ -114,7 +114,7 @@ server.tool(
   'Create an authorization URL an end-user visits to connect a provider account.',
   {
     provider: z.string().describe('provider slug, e.g. "google" or "github"'),
-    end_user_id: z.string().optional().describe('the end-user id; defaults to AGENTAUTH_END_USER'),
+    end_user_id: z.string().optional().describe('the end-user id; defaults to GRANTD_END_USER'),
   },
   async ({ provider, end_user_id }) => {
     const endUser = resolveUser(end_user_id);
@@ -136,7 +136,7 @@ server.tool(
       .describe('provider API path, e.g. "/user" (github) or "/gmail/v1/users/me/messages/send" (google)'),
     method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']).optional().describe('HTTP method (default GET)'),
     body: z.string().optional().describe('request body as a JSON string (for POST/PUT/PATCH)'),
-    end_user_id: z.string().optional().describe('the end-user id; defaults to AGENTAUTH_END_USER'),
+    end_user_id: z.string().optional().describe('the end-user id; defaults to GRANTD_END_USER'),
   },
   async ({ provider, path, method, body, end_user_id }) => {
     const endUser = resolveUser(end_user_id);
@@ -168,4 +168,4 @@ server.tool(
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
-console.error(`AgentAuth MCP server connected (base=${BASE}, default_user=${DEFAULT_END_USER || '(none)'})`);
+console.error(`Grantd MCP server connected (base=${BASE}, default_user=${DEFAULT_END_USER || '(none)'})`);

@@ -10,8 +10,8 @@ import 'dotenv/config';
 const [provider, clientId] = process.argv.slice(2);
 const secret = process.env.CLIENT_SECRET;
 const scopes = (process.env.SCOPES ?? '').split(',').map((s) => s.trim()).filter(Boolean);
-const apiKey = process.env.AGENTAUTH_API_KEY;
-const base = (process.env.AGENTAUTH_BASE_URL ?? 'http://localhost:8787').replace(/\/+$/, '');
+const apiKey = process.env.GRANTD_API_KEY;
+const base = (process.env.GRANTD_BASE_URL ?? 'http://localhost:8787').replace(/\/+$/, '');
 
 if (!provider || !clientId || !secret || !apiKey) {
   console.error('usage: CLIENT_SECRET=... [SCOPES=a,b] npx tsx scripts/set-integration.ts <provider> <client_id>');
