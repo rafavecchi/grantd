@@ -1,0 +1,8 @@
+node_modules
+dist
+sdk/dist
+.env
+.env.local
+.git
+*.log
+__pycache__

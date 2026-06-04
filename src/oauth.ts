@@ -25,6 +25,12 @@ export function codeChallengeS256(verifier: string): string {
   return createHash('sha256').update(verifier).digest('base64url');
 }
 
+// Substitutes `${connectionConfig.x}` placeholders (e.g. a per-connection subdomain) in a
+// provider's proxy base URL using the values captured at connect time.
+export function resolveTemplate(template: string, vars: Record<string, string>): string {
+  return template.replace(/\$\{connectionConfig\.([A-Za-z0-9_]+)\}/g, (_match, key: string) => vars[key] ?? '');
+}
+
 function joinScopes(provider: ProviderDef, scopes: string[]): string {
   const all = [...(provider.defaultScopes ?? []), ...scopes];
   return Array.from(new Set(all)).join(provider.scopeSeparator ?? ' ');

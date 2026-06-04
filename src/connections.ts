@@ -22,6 +22,7 @@ interface ConnectionRow {
   credentials_enc: string | null;
   expires_at: Date | null;
   granted_scopes: string[];
+  connection_config: Record<string, string>;
   refresh_attempts: number;
   refresh_exhausted: boolean;
 }
@@ -49,7 +50,7 @@ async function loadConnection(
 ): Promise<ConnectionRow | null> {
   const rows = await q<ConnectionRow[]>`
     select id, environment_id, integration_id, provider, end_user_id, status,
-           credentials_enc, expires_at, granted_scopes, refresh_attempts, refresh_exhausted
+           credentials_enc, expires_at, granted_scopes, connection_config, refresh_attempts, refresh_exhausted
     from connections
     where environment_id = ${envId} and provider = ${provider} and end_user_id = ${endUserId}
     limit 1`;
@@ -64,7 +65,12 @@ export async function getAccessToken(
   provider: string,
   endUserId: string,
   opts: { forceRefresh?: boolean } = {},
-): Promise<{ accessToken: string; expiresAt: Date | null; connectionId: string }> {
+): Promise<{
+  accessToken: string;
+  expiresAt: Date | null;
+  connectionId: string;
+  connectionConfig: Record<string, string>;
+}> {
   const providerDef = getProvider(provider);
   const conn = await loadConnection(sql, envId, provider, endUserId);
   if (!conn) throw new ConnectionError('not_found', `no connection for ${provider}/${endUserId}`, 404);
@@ -79,7 +85,12 @@ export async function getAccessToken(
     if (isExpired(conn.expires_at, 0) && !canRefresh) {
       throw new ConnectionError('expired', 'access token expired and cannot be refreshed', 409);
     }
-    return { accessToken: creds.access_token, expiresAt: conn.expires_at, connectionId: conn.id };
+    return {
+      accessToken: creds.access_token,
+      expiresAt: conn.expires_at,
+      connectionId: conn.id,
+      connectionConfig: conn.connection_config,
+    };
   }
 
   const lockKey = `${envId}:${provider}:${endUserId}`;
@@ -95,7 +106,12 @@ export async function getAccessToken(
 
     // Another worker may have refreshed while we waited for the lock.
     if (!opts.forceRefresh && !isExpired(fresh.expires_at)) {
-      return { accessToken: freshCreds.access_token, expiresAt: fresh.expires_at, connectionId: fresh.id };
+      return {
+        accessToken: freshCreds.access_token,
+        expiresAt: fresh.expires_at,
+        connectionId: fresh.id,
+        connectionConfig: fresh.connection_config,
+      };
     }
     if (!freshCreds.refresh_token) {
       throw new ConnectionError('expired', 'no refresh token available', 409);
@@ -131,7 +147,12 @@ export async function getAccessToken(
           last_refresh_error = null,
           updated_at = now()
         where id = ${fresh.id}`;
-      return { accessToken: newCreds.access_token, expiresAt: tokenSet.expiresAt ?? null, connectionId: fresh.id };
+      return {
+        accessToken: newCreds.access_token,
+        expiresAt: tokenSet.expiresAt ?? null,
+        connectionId: fresh.id,
+        connectionConfig: fresh.connection_config,
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const attempts = fresh.refresh_attempts + 1;

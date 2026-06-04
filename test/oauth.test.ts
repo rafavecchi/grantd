@@ -1,6 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { parseTokenResponse } from '../src/oauth';
+import { parseTokenResponse, resolveTemplate } from '../src/oauth';
 import { getProvider } from '../src/providers';
+
+describe('resolveTemplate', () => {
+  it('substitutes connectionConfig placeholders', () => {
+    expect(
+      resolveTemplate('https://api.example.com/${connectionConfig.subdomain}/v1', { subdomain: 'acme' }),
+    ).toBe('https://api.example.com/acme/v1');
+  });
+  it('leaves a non-templated url unchanged', () => {
+    expect(resolveTemplate('https://api.github.com', {})).toBe('https://api.github.com');
+  });
+  it('replaces a missing var with empty string', () => {
+    expect(resolveTemplate('https://${connectionConfig.x}.example.com', {})).toBe('https://.example.com');
+  });
+});
 
 const google = getProvider('google');
 const slack = getProvider('slack');

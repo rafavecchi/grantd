@@ -1,17 +1,23 @@
-# Grantd (working name)
+# Grantd
 
 OAuth-for-agents: a dead-simple, MCP-native OAuth token broker that lets AI agents securely
 act on a user's behalf across third-party APIs (Gmail, Slack, GitHub, Notion…). Tokens are
 vaulted server-side and never touch the LLM.
 
-> Full strategy, architecture, and monetization: see `../oauth-for-agents-build-plan.md`.
-> Nango/Arcade/Composio research: `../nango-research-notes.md`.
+Stack: TypeScript · Hono · Postgres · generic OAuth2 driven by a declarative provider registry ·
+envelope encryption (AES-256-GCM, key-versioned) · Postgres advisory locks for refresh concurrency
+(no Redis). Security model and how to report issues: [SECURITY.md](SECURITY.md).
 
-## Status: early scaffold
+## Providers
 
-Stack: TypeScript · Hono · Postgres (Supabase) · generic OAuth2 driven by a declarative
-provider registry · envelope encryption (AES-256-GCM, key-versioned) · Postgres advisory
-locks for refresh concurrency (no Redis).
+| Provider | Status |
+|---|---|
+| Google (Gmail, Calendar, …) | ✅ Verified end-to-end, including token refresh |
+| GitHub | ✅ Verified end-to-end |
+| Slack | 🧪 Experimental — config present, not yet verified against live OAuth |
+| Notion | 🧪 Experimental — config present, not yet verified against live OAuth |
+
+Adding a provider is data, not code (see `src/providers.ts`). Help verifying Slack/Notion is welcome.
 
 ## Quick start (dev)
 

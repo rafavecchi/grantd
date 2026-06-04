@@ -11,6 +11,7 @@ import {
   generateCodeVerifier,
   generateState,
   codeChallengeS256,
+  resolveTemplate,
 } from './oauth';
 import { getAccessToken, recordActivity, logRequest, ConnectionError } from './connections';
 import { requireSecretKey, type Vars } from './auth';
@@ -293,14 +294,16 @@ app.all('/v1/proxy/:provider/:endUserId/*', requireSecretKey, async (c) => {
     return c.json({ error: { type: 'no_proxy', message: `no proxy base url for ${provider}` } }, 400);
   }
 
+  const { accessToken, connectionId, connectionConfig } = await getAccessToken(envId, provider, endUserId);
+
   const prefix = `/v1/proxy/${provider}/${endUserId}`;
   let rest = c.req.path.startsWith(prefix) ? c.req.path.slice(prefix.length) : '';
   if (!rest.startsWith('/')) rest = '/' + rest;
   const qIndex = c.req.url.indexOf('?');
   const queryString = qIndex >= 0 ? c.req.url.slice(qIndex) : '';
-  const targetUrl = providerDef.proxyBaseUrl.replace(/\/+$/, '') + rest + queryString;
-
-  const { accessToken, connectionId } = await getAccessToken(envId, provider, endUserId);
+  // Resolve any ${connectionConfig.x} placeholders (e.g. per-connection subdomains).
+  const base = resolveTemplate(providerDef.proxyBaseUrl, connectionConfig).replace(/\/+$/, '');
+  const targetUrl = base + rest + queryString;
 
   const headers = new Headers();
   c.req.raw.headers.forEach((value, key) => {
@@ -437,6 +440,13 @@ h1{font-size:1.4rem}.msg{color:#444}</style></head>
 function escapeHtml(s: string): string {
   return s.replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]!);
 }
+
+// Warm the DB connection pool at startup so the first request doesn't pay cold-connect latency
+// (and doesn't 500 if the pool is still establishing).
+void sql`select 1`.then(
+  () => console.log('database ready'),
+  (e) => console.error('database warmup failed:', e instanceof Error ? e.message : e),
+);
 
 serve({ fetch: app.fetch, port: config.port }, (info) => {
   console.log(`Grantd listening on http://localhost:${info.port}`);
