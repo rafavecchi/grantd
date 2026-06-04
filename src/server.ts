@@ -244,7 +244,7 @@ app.all('/v1/proxy/:provider/:endUserId/*', requireSecretKey, async (c) => {
   const queryString = qIndex >= 0 ? c.req.url.slice(qIndex) : '';
   const targetUrl = providerDef.proxyBaseUrl.replace(/\/+$/, '') + rest + queryString;
 
-  const { accessToken } = await getAccessToken(envId, provider, endUserId);
+  const { accessToken, connectionId } = await getAccessToken(envId, provider, endUserId);
 
   const headers = new Headers();
   c.req.raw.headers.forEach((value, key) => {
@@ -262,7 +262,7 @@ app.all('/v1/proxy/:provider/:endUserId/*', requireSecretKey, async (c) => {
   const respBody = await upstream.arrayBuffer();
 
   void recordActivity(envId, provider, endUserId).catch(() => {});
-  void logRequest(envId, provider, method, rest, upstream.status, duration).catch(() => {});
+  void logRequest(envId, connectionId, provider, method, rest, upstream.status, duration).catch(() => {});
 
   const outHeaders = new Headers();
   upstream.headers.forEach((value, key) => {

@@ -64,7 +64,7 @@ export async function getAccessToken(
   provider: string,
   endUserId: string,
   opts: { forceRefresh?: boolean } = {},
-): Promise<{ accessToken: string; expiresAt: Date | null }> {
+): Promise<{ accessToken: string; expiresAt: Date | null; connectionId: string }> {
   const providerDef = getProvider(provider);
   const conn = await loadConnection(sql, envId, provider, endUserId);
   if (!conn) throw new ConnectionError('not_found', `no connection for ${provider}/${endUserId}`, 404);
@@ -79,7 +79,7 @@ export async function getAccessToken(
     if (isExpired(conn.expires_at, 0) && !canRefresh) {
       throw new ConnectionError('expired', 'access token expired and cannot be refreshed', 409);
     }
-    return { accessToken: creds.access_token, expiresAt: conn.expires_at };
+    return { accessToken: creds.access_token, expiresAt: conn.expires_at, connectionId: conn.id };
   }
 
   const lockKey = `${envId}:${provider}:${endUserId}`;
@@ -95,7 +95,7 @@ export async function getAccessToken(
 
     // Another worker may have refreshed while we waited for the lock.
     if (!opts.forceRefresh && !isExpired(fresh.expires_at)) {
-      return { accessToken: freshCreds.access_token, expiresAt: fresh.expires_at };
+      return { accessToken: freshCreds.access_token, expiresAt: fresh.expires_at, connectionId: fresh.id };
     }
     if (!freshCreds.refresh_token) {
       throw new ConnectionError('expired', 'no refresh token available', 409);
@@ -131,7 +131,7 @@ export async function getAccessToken(
           last_refresh_error = null,
           updated_at = now()
         where id = ${fresh.id}`;
-      return { accessToken: newCreds.access_token, expiresAt: tokenSet.expiresAt ?? null };
+      return { accessToken: newCreds.access_token, expiresAt: tokenSet.expiresAt ?? null, connectionId: fresh.id };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const attempts = fresh.refresh_attempts + 1;
@@ -164,6 +164,7 @@ export async function recordActivity(envId: string, provider: string, endUserId:
 
 export async function logRequest(
   envId: string,
+  connectionId: string | null,
   provider: string,
   method: string,
   path: string,
@@ -171,6 +172,6 @@ export async function logRequest(
   durationMs: number,
 ): Promise<void> {
   await sql`
-    insert into request_logs (environment_id, provider, method, path, status, duration_ms)
-    values (${envId}, ${provider}, ${method}, ${path}, ${status}, ${durationMs})`;
+    insert into request_logs (environment_id, connection_id, provider, method, path, status, duration_ms)
+    values (${envId}, ${connectionId}, ${provider}, ${method}, ${path}, ${status}, ${durationMs})`;
 }

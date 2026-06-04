@@ -21,7 +21,8 @@ export interface ProviderDef {
   usePKCE?: boolean; // default true for OAUTH2
   tokenAuthMethod?: 'basic' | 'body'; // how client creds are sent on the token request; default 'body'
   tokenAcceptHeader?: string; // e.g. 'application/json' for GitHub
-  tokenResponseMap?: { accessToken?: string; refreshToken?: string; expiresIn?: string };
+  // Map non-standard (and possibly nested, e.g. "authed_user.access_token") token-response keys.
+  tokenResponseMap?: { accessToken?: string; refreshToken?: string; expiresIn?: string; scope?: string };
   refreshable?: boolean; // default true for OAUTH2
 
   // Proxy
@@ -69,9 +70,9 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     tokenAuthMethod: 'body',
     refreshable: false, // unless token rotation is enabled on the Slack app
     proxyBaseUrl: 'https://slack.com/api',
-    // NOTE: Slack returns a nested response (bot token at `access_token`, user token at
-    // `authed_user.access_token`). The generic parser handles the bot token; user-token
-    // extraction is a TODO when we add per-token-type selection.
+    // Slack nests the acting-user token under `authed_user.*`; prefer it, falling back to the
+    // top-level bot token when only bot scopes were granted.
+    tokenResponseMap: { accessToken: 'authed_user.access_token', scope: 'authed_user.scope' },
   },
 
   notion: {

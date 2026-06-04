@@ -120,26 +120,38 @@ async function tokenRequest(
   return parseTokenResponse(provider, json);
 }
 
-function parseTokenResponse(provider: ProviderDef, json: Record<string, unknown>): TokenSet {
+// Reads a possibly-nested key like "authed_user.access_token" out of a token response.
+function getPath(obj: Record<string, unknown>, path: string): unknown {
+  return path.split('.').reduce<unknown>((acc, key) => {
+    return acc && typeof acc === 'object' ? (acc as Record<string, unknown>)[key] : undefined;
+  }, obj);
+}
+
+export function parseTokenResponse(provider: ProviderDef, json: Record<string, unknown>): TokenSet {
   const map = provider.tokenResponseMap ?? {};
-  const accessToken = String(json[map.accessToken ?? 'access_token'] ?? '');
+  // Try the provider's mapped (possibly nested) key, then fall back to the standard top-level key.
+  // This handles providers like Slack that nest the user token under `authed_user.access_token`.
+  const pick = (mapped: string | undefined, fallback: string): unknown =>
+    (mapped ? getPath(json, mapped) : undefined) ?? getPath(json, fallback);
+
+  const accessToken = String(pick(map.accessToken, 'access_token') ?? '');
   if (!accessToken) throw new Error(`no access_token in token response for ${provider.slug}`);
 
-  const refreshTokenRaw = json[map.refreshToken ?? 'refresh_token'];
-  const expiresInRaw = json[map.expiresIn ?? 'expires_in'];
+  const refreshTokenRaw = pick(map.refreshToken, 'refresh_token');
+  const expiresInRaw = pick(map.expiresIn, 'expires_in');
   const expiresIn =
     typeof expiresInRaw === 'number'
       ? expiresInRaw
       : typeof expiresInRaw === 'string'
         ? parseInt(expiresInRaw, 10)
         : undefined;
-  const scope = json.scope;
+  const scopeRaw = pick(map.scope, 'scope');
 
   return {
     accessToken,
     refreshToken: typeof refreshTokenRaw === 'string' ? refreshTokenRaw : undefined,
     expiresAt: expiresIn && !Number.isNaN(expiresIn) ? new Date(Date.now() + expiresIn * 1000) : undefined,
-    scopes: typeof scope === 'string' ? scope.split(/[ ,]/).filter(Boolean) : undefined,
+    scopes: typeof scopeRaw === 'string' ? scopeRaw.split(/[ ,]/).filter(Boolean) : undefined,
     raw: json,
   };
 }
