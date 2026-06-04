@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+import { Hono, type MiddlewareHandler } from 'hono';
 import { serve } from '@hono/node-server';
 import { z } from 'zod';
 import { config } from './config';
@@ -15,8 +15,23 @@ import {
 } from './oauth';
 import { getAccessToken, recordActivity, logRequest, ConnectionError } from './connections';
 import { requireSecretKey, type Vars } from './auth';
+import { rateLimit, maybeCleanup, clientIp } from './ratelimit';
 
 const app = new Hono<Vars>();
+
+// Per-IP rate limiting for the public (unauthenticated) routes.
+const publicRateLimit: MiddlewareHandler<Vars> = async (c, next) => {
+  const rl = await rateLimit('ip', clientIp(c), config.rateLimitPublicPerMin);
+  maybeCleanup();
+  if (!rl.allowed) {
+    c.header('Retry-After', String(rl.retryAfter));
+    return c.text('Too many requests. Please slow down.', 429);
+  }
+  await next();
+};
+app.use('/connect', publicRateLimit);
+app.use('/connect/start', publicRateLimit);
+app.use('/v1/connect/callback', publicRateLimit);
 
 app.get('/health', (c) => c.json({ ok: true }));
 

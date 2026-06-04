@@ -1,6 +1,8 @@
 import type { MiddlewareHandler } from 'hono';
 import { sql } from './db';
+import { config } from './config';
 import { hashApiKey } from './crypto';
+import { rateLimit, maybeCleanup } from './ratelimit';
 
 export type Vars = { Variables: { envId: string } };
 
@@ -20,6 +22,12 @@ export const requireSecretKey: MiddlewareHandler<Vars> = async (c, next) => {
   const row = rows[0];
   if (!row) {
     return c.json({ error: { type: 'unauthorized', message: 'invalid secret key' } }, 401);
+  }
+  const rl = await rateLimit('key', row.environment_id, config.rateLimitAuthPerMin);
+  maybeCleanup();
+  if (!rl.allowed) {
+    c.header('Retry-After', String(rl.retryAfter));
+    return c.json({ error: { type: 'rate_limited', message: 'rate limit exceeded' } }, 429);
   }
   c.set('envId', row.environment_id);
   void sql`update api_keys set last_used_at = now() where id = ${row.id}`.catch(() => {});

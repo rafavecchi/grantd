@@ -8,6 +8,8 @@ const Env = z.object({
   API_KEY_SALT: z.string().min(16, 'API_KEY_SALT must be at least 16 characters'),
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:8787'),
   PORT: z.coerce.number().default(8787),
+  RATE_LIMIT_AUTH_PER_MIN: z.coerce.number().default(600), // per secret key (environment)
+  RATE_LIMIT_PUBLIC_PER_MIN: z.coerce.number().default(120), // per IP on public routes
 });
 
 const parsed = Env.safeParse(process.env);
@@ -49,4 +51,6 @@ export const config = {
   apiKeySalt: env.API_KEY_SALT,
   publicBaseUrl: env.PUBLIC_BASE_URL.replace(/\/+$/, ''),
   port: env.PORT,
+  rateLimitAuthPerMin: env.RATE_LIMIT_AUTH_PER_MIN,
+  rateLimitPublicPerMin: env.RATE_LIMIT_PUBLIC_PER_MIN,
 };

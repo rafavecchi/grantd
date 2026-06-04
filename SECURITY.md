@@ -28,10 +28,20 @@ what you're responsible for when self-hosting, current limitations, and how to r
 - Run the broker behind TLS. The broker trusts any caller presenting a valid secret key; treat
   `sk_` keys like passwords.
 
+## Rate limiting
+
+A durable, Postgres-backed fixed-window limiter is built in and works across multiple instances:
+
+- **Authenticated routes** are limited per secret key (`RATE_LIMIT_AUTH_PER_MIN`, default 600/min).
+- **Public routes** (`/connect`, `/connect/start`, `/v1/connect/callback`) are limited per IP
+  (`RATE_LIMIT_PUBLIC_PER_MIN`, default 120/min). Per-IP limits rely on a trustworthy
+  `x-forwarded-for` from your proxy/edge.
+
+For **volumetric DoS** protection, still place the broker behind an edge/WAF (e.g. Cloudflare) —
+an in-process limiter must still accept and process the request.
+
 ## Known limitations (as of this version)
 
-- **No built-in rate limiting.** Put the broker behind a gateway/WAF that rate-limits, especially
-  the public `/connect` and `/v1/connect/callback` routes.
 - **The proxy follows provider redirects** (the default `fetch` behavior). Callers already need a
   valid secret key and an active connection, and the base URL is fixed per provider, but be aware
   of this if you add providers.
@@ -40,5 +50,5 @@ what you're responsible for when self-hosting, current limitations, and how to r
 ## Reporting a vulnerability
 
 Please **do not open a public issue** for security vulnerabilities. Email the maintainer at
-`security@<your-domain>` (replace with your contact) with details and a way to reproduce. We aim to
-acknowledge within a few business days and will credit reporters who follow responsible disclosure.
+**rafa@noxtele.com** with details and a way to reproduce. We aim to acknowledge within a few
+business days and will credit reporters who follow responsible disclosure.
