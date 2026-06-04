@@ -54,7 +54,8 @@ export function buildAuthorizationUrl(p: AuthUrlParams): string {
   q.set('redirect_uri', p.redirectUri);
   q.set('state', p.state);
   const scopeStr = joinScopes(p.provider, p.scopes);
-  if (scopeStr) q.set('scope', scopeStr);
+  // Most providers use `scope`; Slack uses `user_scope` to request an acting-user token.
+  if (scopeStr) q.set(p.provider.scopeParam ?? 'scope', scopeStr);
   if (p.codeChallenge) {
     q.set('code_challenge', p.codeChallenge);
     q.set('code_challenge_method', 'S256');
@@ -100,19 +101,21 @@ async function tokenRequest(
   tokenUrl?: string,
 ): Promise<TokenSet> {
   if (!tokenUrl) throw new Error(`${provider.slug} has no tokenUrl`);
+  const isJson = provider.tokenBodyFormat === 'json'; // Notion requires a JSON token request body
   const headers: Record<string, string> = {
-    'content-type': 'application/x-www-form-urlencoded',
+    'content-type': isJson ? 'application/json' : 'application/x-www-form-urlencoded',
     accept: provider.tokenAcceptHeader ?? 'application/json',
   };
-  const form = new URLSearchParams(body);
+  const payload: Record<string, string> = { ...body };
   if (provider.tokenAuthMethod === 'basic') {
     headers.authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   } else {
-    form.set('client_id', clientId);
-    form.set('client_secret', clientSecret);
+    payload.client_id = clientId;
+    payload.client_secret = clientSecret;
   }
+  const reqBody = isJson ? JSON.stringify(payload) : new URLSearchParams(payload).toString();
 
-  const res = await fetch(tokenUrl, { method: 'POST', headers, body: form.toString() });
+  const res = await fetch(tokenUrl, { method: 'POST', headers, body: reqBody });
   const text = await res.text();
   let json: Record<string, unknown>;
   try {

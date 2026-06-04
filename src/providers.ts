@@ -16,10 +16,12 @@ export interface ProviderDef {
 
   // Quirk knobs (these ~7 fields cover ~95% of providers)
   scopeSeparator?: string; // default ' '
+  scopeParam?: string; // query param for scopes on the authorize URL; default 'scope' (Slack: 'user_scope')
   defaultScopes?: string[];
   authorizationParams?: Record<string, string>;
   usePKCE?: boolean; // default true for OAUTH2
   tokenAuthMethod?: 'basic' | 'body'; // how client creds are sent on the token request; default 'body'
+  tokenBodyFormat?: 'form' | 'json'; // token request body encoding; default 'form' (Notion: 'json')
   tokenAcceptHeader?: string; // e.g. 'application/json' for GitHub
   // Map non-standard (and possibly nested, e.g. "authed_user.access_token") token-response keys.
   tokenResponseMap?: { accessToken?: string; refreshToken?: string; expiresIn?: string; scope?: string };
@@ -66,6 +68,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     authorizationUrl: 'https://slack.com/oauth/v2/authorize',
     tokenUrl: 'https://slack.com/api/oauth.v2.access',
     scopeSeparator: ',',
+    scopeParam: 'user_scope', // request an acting-user token, not a bot token
     usePKCE: false,
     tokenAuthMethod: 'body',
     refreshable: false, // unless token rotation is enabled on the Slack app
@@ -84,6 +87,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     authorizationParams: { owner: 'user' },
     usePKCE: false,
     tokenAuthMethod: 'basic', // Notion requires HTTP Basic with client id/secret on the token request
+    tokenBodyFormat: 'json', // ...and a JSON request body
     refreshable: false,
     proxyBaseUrl: 'https://api.notion.com',
   },
