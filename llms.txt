@@ -16,6 +16,8 @@ Base URL: your broker (e.g. http://localhost:8787). Auth: `Authorization: Bearer
 - `GET /v1/providers` — list supported providers
 - `PUT /v1/integrations/{provider}` — configure a provider OAuth client: `{ client_id, client_secret, scopes }`
 - `POST /v1/connect_sessions` — `{ end_user_id, provider, scopes? }` → `{ url }`; send the user to `url` to authorize
+- `POST /v1/connect_ui_sessions` — `{ end_user_id, providers?, redirect_uri? }` → `{ url }`; a Grantd-hosted page where the user connects multiple accounts (browser-safe, no secret key)
+- `GET /connect?token=...` — the hosted Connect UI page (public)
 - `GET /v1/connect/callback` — OAuth redirect target (public; vaults the token)
 - `POST /v1/connections/{provider}/{end_user_id}/token` — fresh access token (auto-refreshed); `?force_refresh=true` to force
 - `ALL /v1/proxy/{provider}/{end_user_id}/{path}` — call a provider API as the user (token injected server-side)

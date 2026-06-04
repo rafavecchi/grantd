@@ -186,6 +186,25 @@ export class Grantd {
     return { url: d.url, provider: d.provider, userId: d.end_user_id, expiresAt: d.expires_at };
   }
 
+  /**
+   * Create a short-lived hosted Connect UI session. Returns a browser-safe URL you can send the
+   * user to so they can connect their accounts from a Grantd-hosted page (no secret key required).
+   */
+  async connectUi(opts: {
+    userId: string;
+    providers?: string[];
+    redirectUri?: string;
+  }): Promise<{ url: string; token: string; expiresAt: string }> {
+    const r = await this.req('/v1/connect_ui_sessions', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ end_user_id: opts.userId, providers: opts.providers, redirect_uri: opts.redirectUri }),
+    });
+    if (r.status >= 400) throw new GrantdError(`connectUi failed (${r.status})`, r.status, this.errType(r), r.json);
+    const d = (r.json as { data: { url: string; token: string; expires_at: string } }).data;
+    return { url: d.url, token: d.token, expiresAt: d.expires_at };
+  }
+
   /** List all connections in this environment. */
   async listConnections(): Promise<Connection[]> {
     const r = await this.req('/v1/connections');

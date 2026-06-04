@@ -133,6 +133,18 @@ class Grantd:
         d = r.json()["data"]
         return ConnectResult(d["url"], d["provider"], d["end_user_id"], d["expires_at"])
 
+    def connect_ui(self, user_id, providers=None, redirect_uri=None) -> dict:
+        """Create a hosted Connect UI session. Returns {url, token, expires_at}; send the user to url."""
+        r = self._req(
+            "POST",
+            "/v1/connect_ui_sessions",
+            json={"end_user_id": user_id, "providers": providers, "redirect_uri": redirect_uri},
+            headers={"content-type": "application/json"},
+        )
+        if r.status_code >= 400:
+            raise _err("connect_ui", r)
+        return r.json()["data"]
+
     def list_connections(self) -> List[Connection]:
         r = self._req("GET", "/v1/connections")
         if r.status_code >= 400:
@@ -239,6 +251,18 @@ class AsyncGrantd:
             raise _err("connect", r)
         d = r.json()["data"]
         return ConnectResult(d["url"], d["provider"], d["end_user_id"], d["expires_at"])
+
+    async def connect_ui(self, user_id, providers=None, redirect_uri=None) -> dict:
+        """Create a hosted Connect UI session. Returns {url, token, expires_at}; send the user to url."""
+        r = await self._req(
+            "POST",
+            "/v1/connect_ui_sessions",
+            json={"end_user_id": user_id, "providers": providers, "redirect_uri": redirect_uri},
+            headers={"content-type": "application/json"},
+        )
+        if r.status_code >= 400:
+            raise _err("connect_ui", r)
+        return r.json()["data"]
 
     async def list_connections(self) -> List[Connection]:
         r = await self._req("GET", "/v1/connections")
