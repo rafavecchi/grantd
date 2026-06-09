@@ -1,5 +1,7 @@
 node_modules/
 dist/
+.tools/
+*.tgz
 .env
 .env.local
 *.log

@@ -56,16 +56,19 @@ Exposes the broker to an AI agent (Claude Code / Cursor / Claude Desktop) as too
 auth-gating wedge: if the agent calls `call_provider` for a user who isn't connected, it
 returns an `authorization_required` result with a connect link instead of failing.
 
-Run standalone (needs the broker running): `npm run mcp`. Smoke test: `npm run mcp:test`.
+The MCP server is published to npm as [`grantd-mcp`](https://www.npmjs.com/package/grantd-mcp), so
+you don't need to clone this repo to use it — just point an MCP client at it (you do need a running
+broker and a secret key). For local development: `npm run mcp` (needs the broker running); smoke
+test: `npm run mcp:test`.
 
 Add to Claude Code:
 
 ```bash
 claude mcp add grantd \
   --env GRANTD_API_KEY=sk_... \
-  --env GRANTD_BASE_URL=http://localhost:8787 \
-  --env GRANTD_END_USER=rafa \
-  -- npx tsx C:/Users/Rafav/grantd/src/mcp.ts
+  --env GRANTD_BASE_URL=https://your-broker.example.com \
+  --env GRANTD_END_USER=user-123 \
+  -- npx -y grantd-mcp
 ```
 
 Or in a Cursor / Claude Desktop `mcpServers` config:
@@ -75,18 +78,16 @@ Or in a Cursor / Claude Desktop `mcpServers` config:
   "mcpServers": {
     "grantd": {
       "command": "npx",
-      "args": ["tsx", "C:\\Users\\Rafav\\grantd\\src\\mcp.ts"],
+      "args": ["-y", "grantd-mcp"],
       "env": {
         "GRANTD_API_KEY": "sk_...",
-        "GRANTD_BASE_URL": "http://localhost:8787",
-        "GRANTD_END_USER": "rafa"
+        "GRANTD_BASE_URL": "https://your-broker.example.com",
+        "GRANTD_END_USER": "user-123"
       }
     }
   }
 }
 ```
-
-(Windows fallback if `npx` spawn misbehaves: use `"command": "node"`, `"args": ["C:\\Users\\Rafav\\grantd\\node_modules\\tsx\\dist\\cli.mjs", "C:\\Users\\Rafav\\grantd\\src\\mcp.ts"]`.)
 
 ## Layout
 

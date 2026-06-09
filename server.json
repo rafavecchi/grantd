@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.rafavecchi/grantd",
+  "description": "Grantd MCP server: let your AI agent act on a user's behalf across third-party APIs via OAuth.",
+  "repository": {
+    "url": "https://github.com/rafavecchi/grantd",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "grantd-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "GRANTD_API_KEY",
+          "description": "A Grantd secret key (sk_...). Treat it like a password.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "GRANTD_BASE_URL",
+          "description": "Base URL of your Grantd broker (default http://localhost:8787).",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "GRANTD_END_USER",
+          "description": "Default end-user id so tools don't need it passed each call.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

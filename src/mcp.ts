@@ -166,6 +166,13 @@ server.tool(
   },
 );
 
-const transport = new StdioServerTransport();
-await server.connect(transport);
-console.error(`Grantd MCP server connected (base=${BASE}, default_user=${DEFAULT_END_USER || '(none)'})`);
+async function main() {
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  console.error(`Grantd MCP server connected (base=${BASE}, default_user=${DEFAULT_END_USER || '(none)'})`);
+}
+
+main().catch((err) => {
+  console.error('Grantd MCP server failed to start:', err);
+  process.exit(1);
+});

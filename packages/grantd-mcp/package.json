@@ -1,0 +1,46 @@
+{
+  "name": "grantd-mcp",
+  "version": "0.1.0",
+  "description": "Grantd MCP server — let your AI agent act on a user's behalf across third-party APIs (Gmail, GitHub, …) via OAuth-for-agents. A thin client of a Grantd broker; tokens are vaulted server-side and never reach the model.",
+  "type": "module",
+  "bin": {
+    "grantd-mcp": "dist/index.cjs"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "mcpName": "io.github.rafavecchi/grantd",
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "author": "Rafael Vecchi",
+  "homepage": "https://github.com/rafavecchi/grantd#readme",
+  "bugs": {
+    "url": "https://github.com/rafavecchi/grantd/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafavecchi/grantd.git",
+    "directory": "packages/grantd-mcp"
+  },
+  "keywords": [
+    "mcp",
+    "modelcontextprotocol",
+    "model-context-protocol",
+    "oauth",
+    "oauth2",
+    "agents",
+    "ai-agents",
+    "tools",
+    "grantd"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "prepublishOnly": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0"
+  }
+}
