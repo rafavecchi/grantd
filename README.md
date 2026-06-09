@@ -8,6 +8,26 @@ Stack: TypeScript · Hono · Postgres · generic OAuth2 driven by a declarative 
 envelope encryption (AES-256-GCM, key-versioned) · Postgres advisory locks for refresh concurrency
 (no Redis). Security model and how to report issues: [SECURITY.md](SECURITY.md).
 
+## Security at a glance
+
+Grantd vaults users' OAuth tokens, so security is the product, not a feature. The fundamentals:
+
+- **Tokens encrypted at rest** — AES-256-GCM envelope encryption, fresh IV per record, key-versioned,
+  and **fail-closed** (a missing key refuses to write; it never silently stores plaintext).
+- **Tokens never reach the LLM or the caller.** The proxy injects the access token at the network
+  boundary and returns only the provider's response — the raw token is never serialized back.
+- **API keys hashed at rest** (pbkdf2-sha256, peppered); the raw `sk_` key is shown once.
+- **No SQL injection** — every query is a parameterized `postgres.js` tagged template.
+- **Tenant isolation** on every query by environment id; **Row-Level Security** enabled on all tables
+  so a Postgres REST layer (e.g. Supabase/PostgREST) can't read the vault.
+- **256-bit random** OAuth `state` + session tokens; **PKCE (S256)** where the provider supports it.
+- **Durable, Postgres-backed rate limiting** — per secret key on auth routes, per IP on public routes.
+
+This is open-source infrastructure **you run yourself**. Self-hosting responsibilities (key custody,
+TLS, an edge/WAF for volumetric DoS) and known limitations are documented honestly in
+[SECURITY.md](SECURITY.md). If you intend to run a hosted, multi-tenant deployment that holds other
+people's tokens, work through [HOSTED-CHECKLIST.md](HOSTED-CHECKLIST.md) first.
+
 ## Providers
 
 | Provider | Status |
